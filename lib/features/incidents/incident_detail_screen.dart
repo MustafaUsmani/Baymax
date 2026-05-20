@@ -18,7 +18,8 @@ class IncidentDetailScreen extends ConsumerStatefulWidget {
   const IncidentDetailScreen({super.key, required this.incidentId});
 
   @override
-  ConsumerState<IncidentDetailScreen> createState() => _IncidentDetailScreenState();
+  ConsumerState<IncidentDetailScreen> createState() =>
+      _IncidentDetailScreenState();
 }
 
 class _IncidentDetailScreenState extends ConsumerState<IncidentDetailScreen> {
@@ -35,12 +36,13 @@ class _IncidentDetailScreenState extends ConsumerState<IncidentDetailScreen> {
     setState(() => _loadingAi = true);
     try {
       final firestoreService = ref.read(firestoreServiceProvider);
-      final incident = await firestoreService.getIncidentById(widget.incidentId);
+      final incident = await firestoreService.getIncidentById(
+        widget.incidentId,
+      );
       if (incident != null && mounted) {
-        final advice = await ref.read(aiServiceProvider).analyzeIncident(
-              incident.description,
-              incident.type,
-            );
+        final advice = await ref
+            .read(aiServiceProvider)
+            .analyzeIncident(incident.description, incident.type);
         setState(() {
           _aiAdvice = advice;
           _loadingAi = false;
@@ -49,18 +51,22 @@ class _IncidentDetailScreenState extends ConsumerState<IncidentDetailScreen> {
     } catch (_) {
       if (mounted) {
         setState(() {
-          _aiAdvice = 'Decision intelligence failed to initialize. Rely on field manuals.';
+          _aiAdvice =
+              'Decision intelligence failed to initialize. Rely on field manuals.';
           _loadingAi = false;
         });
       }
     }
   }
 
-  Future<void> _updateStatus(IncidentModel incident, IncidentStatus status) async {
+  Future<void> _updateStatus(
+    IncidentModel incident,
+    IncidentStatus status,
+  ) async {
     try {
       final updated = incident.copyWith(status: status.name);
       await ref.read(firestoreServiceProvider).updateIncident(updated);
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -76,7 +82,10 @@ class _IncidentDetailScreenState extends ConsumerState<IncidentDetailScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to update status: $e', style: const TextStyle(color: Colors.white)),
+            content: Text(
+              'Failed to update status: $e',
+              style: const TextStyle(color: Colors.white),
+            ),
             backgroundColor: AppColors.emergencyRed,
           ),
         );
@@ -88,59 +97,78 @@ class _IncidentDetailScreenState extends ConsumerState<IncidentDetailScreen> {
     // Simulate share dialog to avoid third party package compile errors
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.secondarySurface,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: AppColors.cardBorder),
-        ),
-        title: Row(
-          children: [
-            const Icon(Icons.share, color: AppColors.accentAmber),
-            const SizedBox(width: 10),
-            const Text(
-              'SHARE CRISIS DOSSIER',
-              style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 1),
+      builder:
+          (ctx) => AlertDialog(
+            backgroundColor: AppColors.secondarySurface,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: const BorderSide(color: AppColors.cardBorder),
             ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text(
-              'Incident broadcast data package formulated:',
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+            title: Row(
+              children: [
+                const Icon(Icons.share, color: AppColors.accentAmber),
+                const SizedBox(width: 10),
+                const Text(
+                  'SHARE CRISIS DOSSIER',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: AppColors.cardBackground,
-                borderRadius: BorderRadius.circular(10),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text(
+                  'Incident broadcast data package formulated:',
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.cardBackground,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: SelectableText(
+                    'BayMax BROADCAST FEED\n'
+                    'Type: ${incident.type.toUpperCase()}\n'
+                    'Severity: ${incident.severity.toUpperCase()}\n'
+                    'Location: ${incident.latitude.toStringAsFixed(4)}, ${incident.longitude.toStringAsFixed(4)}\n'
+                    'Brief: ${incident.description}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontFamily: 'monospace',
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text(
+                  'COPY TELEMETRY',
+                  style: TextStyle(color: AppColors.accentAmber),
+                ),
               ),
-              child: SelectableText(
-                'CRISISLINK BROADCAST FEED\n'
-                'Type: ${incident.type.toUpperCase()}\n'
-                'Severity: ${incident.severity.toUpperCase()}\n'
-                'Location: ${incident.latitude.toStringAsFixed(4)}, ${incident.longitude.toStringAsFixed(4)}\n'
-                'Brief: ${incident.description}',
-                style: const TextStyle(color: Colors.white, fontSize: 11, fontFamily: 'monospace'),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text(
+                  'CLOSE',
+                  style: TextStyle(color: Colors.white),
+                ),
               ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('COPY TELEMETRY', style: TextStyle(color: AppColors.accentAmber)),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('CLOSE', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
     );
   }
 
@@ -153,30 +181,34 @@ class _IncidentDetailScreenState extends ConsumerState<IncidentDetailScreen> {
       appBar: AppBar(
         title: const Text(
           'CRISIS INTELLIGENCE DOSSIER',
-          style: TextStyle(letterSpacing: 1.5, fontWeight: FontWeight.w900, fontSize: 14),
+          style: TextStyle(
+            letterSpacing: 1.5,
+            fontWeight: FontWeight.w900,
+            fontSize: 14,
+          ),
         ),
       ),
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppColors.backgroundGradient,
-        ),
+        decoration: const BoxDecoration(gradient: AppColors.backgroundGradient),
         child: incidentsStream.when(
           data: (incidents) {
             // Find current incident
             final incident = incidents.firstWhere(
               (e) => e.id == widget.incidentId,
-              orElse: () => IncidentModel(
-                id: widget.incidentId,
-                userId: 'unknown',
-                type: 'other',
-                description: 'Record not found in the operations grid database.',
-                severity: 'low',
-                latitude: 37.7749,
-                longitude: -122.4194,
-                imagesBase64: [],
-                createdAt: DateTime.now(),
-                status: 'resolved',
-              ),
+              orElse:
+                  () => IncidentModel(
+                    id: widget.incidentId,
+                    userId: 'unknown',
+                    type: 'other',
+                    description:
+                        'Record not found in the operations grid database.',
+                    severity: 'low',
+                    latitude: 37.7749,
+                    longitude: -122.4194,
+                    imagesBase64: [],
+                    createdAt: DateTime.now(),
+                    status: 'resolved',
+                  ),
             );
 
             if (incident.userId == 'unknown') {
@@ -186,15 +218,19 @@ class _IncidentDetailScreenState extends ConsumerState<IncidentDetailScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.cloud_off, size: 64, color: AppColors.emergencyRed),
+                      const Icon(
+                        Icons.cloud_off,
+                        size: 64,
+                        color: AppColors.emergencyRed,
+                      ),
                       const SizedBox(height: 16),
                       Text(
                         'DOSSIER OFFLINE',
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 2,
-                            ),
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 2,
+                        ),
                       ),
                       const SizedBox(height: 8),
                       const Text(
@@ -210,7 +246,10 @@ class _IncidentDetailScreenState extends ConsumerState<IncidentDetailScreen> {
 
             return SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 12.0,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -241,15 +280,14 @@ class _IncidentDetailScreenState extends ConsumerState<IncidentDetailScreen> {
               ),
             );
           },
-          loading: () => const Center(
-            child: ShimmerCard(height: 400),
-          ),
-          error: (err, _) => Center(
-            child: Text(
-              'Tactical connection lost: $err',
-              style: const TextStyle(color: AppColors.emergencyRed),
-            ),
-          ),
+          loading: () => const Center(child: ShimmerCard(height: 400)),
+          error:
+              (err, _) => Center(
+                child: Text(
+                  'Tactical connection lost: $err',
+                  style: const TextStyle(color: AppColors.emergencyRed),
+                ),
+              ),
         ),
       ),
     );
@@ -269,7 +307,11 @@ class _IncidentDetailScreenState extends ConsumerState<IncidentDetailScreen> {
         child: const Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.broken_image_outlined, color: AppColors.textSecondary, size: 48),
+            Icon(
+              Icons.broken_image_outlined,
+              color: AppColors.textSecondary,
+              size: 48,
+            ),
             SizedBox(height: 10),
             Text(
               'NO PHOTO EVIDENCE ATTACHED',
@@ -327,8 +369,10 @@ class _IncidentDetailScreenState extends ConsumerState<IncidentDetailScreen> {
   }
 
   Widget _buildDossierHeader(IncidentModel incident) {
-    final statusColor = getStatusColor(IncidentStatus.fromString(incident.status));
-    
+    final statusColor = getStatusColor(
+      IncidentStatus.fromString(incident.status),
+    );
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -342,7 +386,10 @@ class _IncidentDetailScreenState extends ConsumerState<IncidentDetailScreen> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: statusColor.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
@@ -350,7 +397,12 @@ class _IncidentDetailScreenState extends ConsumerState<IncidentDetailScreen> {
                 ),
                 child: Text(
                   incident.status.toUpperCase(),
-                  style: TextStyle(color: statusColor, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1),
+                  style: TextStyle(
+                    color: statusColor,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1,
+                  ),
                 ),
               ),
               const Spacer(),
@@ -370,14 +422,26 @@ class _IncidentDetailScreenState extends ConsumerState<IncidentDetailScreen> {
           const SizedBox(height: 8),
           Row(
             children: [
-              const Icon(Icons.person_pin, color: AppColors.accentAmber, size: 14),
+              const Icon(
+                Icons.person_pin,
+                color: AppColors.accentAmber,
+                size: 14,
+              ),
               const SizedBox(width: 6),
               Text(
                 'REPORTER: ${incident.userId.substring(0, incident.userId.length > 10 ? 10 : incident.userId.length).toUpperCase()}',
-                style: TextStyle(color: AppColors.textSecondary, fontSize: 11, fontWeight: FontWeight.w600),
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               const Spacer(),
-              const Icon(Icons.access_time_filled, color: AppColors.textSecondary, size: 14),
+              const Icon(
+                Icons.access_time_filled,
+                color: AppColors.textSecondary,
+                size: 14,
+              ),
               const SizedBox(width: 4),
               Text(
                 DateFormat('MM/dd HH:mm').format(incident.createdAt),
@@ -415,7 +479,8 @@ class _IncidentDetailScreenState extends ConsumerState<IncidentDetailScreen> {
                   markerId: MarkerId(incident.id),
                   position: LatLng(incident.latitude, incident.longitude),
                   icon: BitmapDescriptor.defaultMarkerWithHue(
-                    incident.severity == 'critical' || incident.severity == 'high'
+                    incident.severity == 'critical' ||
+                            incident.severity == 'high'
                         ? BitmapDescriptor.hueRed
                         : BitmapDescriptor.hueOrange,
                   ),
@@ -436,14 +501,21 @@ class _IncidentDetailScreenState extends ConsumerState<IncidentDetailScreen> {
               left: 12,
               bottom: 12,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.secondarySurface.withValues(alpha: 0.85),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
                   '${incident.latitude.toStringAsFixed(4)}°, ${incident.longitude.toStringAsFixed(4)}°',
-                  style: const TextStyle(color: Colors.white, fontSize: 11, fontFamily: 'monospace'),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 11,
+                    fontFamily: 'monospace',
+                  ),
                 ),
               ),
             ),
@@ -469,11 +541,20 @@ class _IncidentDetailScreenState extends ConsumerState<IncidentDetailScreen> {
             children: [
               const Text(
                 'SITUATIONAL DESCRIPTION BRIEF',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 10, letterSpacing: 1.5),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 10,
+                  letterSpacing: 1.5,
+                ),
               ),
               GestureDetector(
                 onTap: () => _shareIncident(incident),
-                child: const Icon(Icons.share, color: AppColors.accentAmber, size: 18),
+                child: const Icon(
+                  Icons.share,
+                  color: AppColors.accentAmber,
+                  size: 18,
+                ),
               ),
             ],
           ),
@@ -508,7 +589,11 @@ class _IncidentDetailScreenState extends ConsumerState<IncidentDetailScreen> {
           children: [
             Row(
               children: [
-                const Icon(Icons.psychology, color: AppColors.successTeal, size: 20),
+                const Icon(
+                  Icons.psychology,
+                  color: AppColors.successTeal,
+                  size: 20,
+                ),
                 const SizedBox(width: 8),
                 const Text(
                   'AI STRATEGIC RECONNAISSANCE',
@@ -526,7 +611,9 @@ class _IncidentDetailScreenState extends ConsumerState<IncidentDetailScreen> {
                     height: 12,
                     child: CircularProgressIndicator(
                       strokeWidth: 1.5,
-                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.successTeal),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        AppColors.successTeal,
+                      ),
                     ),
                   ),
               ],
@@ -574,37 +661,42 @@ class _IncidentDetailScreenState extends ConsumerState<IncidentDetailScreen> {
             ),
             const SizedBox(height: 14),
             Row(
-              children: IncidentStatus.values.map((status) {
-                final isCurrent = incident.status.toLowerCase() == status.name;
-                final col = getStatusColor(status);
+              children:
+                  IncidentStatus.values.map((status) {
+                    final isCurrent =
+                        incident.status.toLowerCase() == status.name;
+                    final col = getStatusColor(status);
 
-                return Expanded(
-                  child: GestureDetector(
-                    onTap: () => _updateStatus(incident, status),
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 4),
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      decoration: BoxDecoration(
-                        color: isCurrent ? col.withValues(alpha: 0.15) : AppColors.cardBackground,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: isCurrent ? col : AppColors.cardBorder,
-                          width: isCurrent ? 1.5 : 1.0,
+                    return Expanded(
+                      child: GestureDetector(
+                        onTap: () => _updateStatus(incident, status),
+                        child: Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 4),
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          decoration: BoxDecoration(
+                            color:
+                                isCurrent
+                                    ? col.withValues(alpha: 0.15)
+                                    : AppColors.cardBackground,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: isCurrent ? col : AppColors.cardBorder,
+                              width: isCurrent ? 1.5 : 1.0,
+                            ),
+                          ),
+                          child: Text(
+                            status.displayName.toUpperCase(),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: isCurrent ? col : AppColors.textSecondary,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                       ),
-                      child: Text(
-                        status.displayName.toUpperCase(),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: isCurrent ? col : AppColors.textSecondary,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
+                    );
+                  }).toList(),
             ),
           ],
         ),

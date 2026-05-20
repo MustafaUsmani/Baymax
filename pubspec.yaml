@@ -1,5 +1,5 @@
 name: crisis_link
-description: CrisisLink - AI-assisted emergency operations and public safety application.
+description: BayMax - AI-assisted emergency operations and public safety application.
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -20,6 +20,7 @@ dependencies:
   google_maps_flutter: ^2.12.1
   geolocator: ^13.0.2
   geocoding: ^3.0.0
+  flutter_launcher_icons: ^0.14.4
 
   # State Management
   flutter_riverpod: ^2.6.1
@@ -54,3 +55,9 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "lib/theme/applogo.png"
+  adaptive_icon_background: "#ffffff"
+  adaptive_icon_foreground: "lib/theme/applogo.png"

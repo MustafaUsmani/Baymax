@@ -1,11 +1,16 @@
 import 'dart:convert';
 import 'dart:math';
-import 'dart:typed_data';
+
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
 import 'package:crisis_link/core/constants.dart';
+
+Future<void> playAISound() async {
+  await SystemSound.play(SystemSoundType.click);
+}
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Date / Time Formatting Helpers

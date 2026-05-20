@@ -4,9 +4,10 @@ import 'package:flutter/material.dart';
 // App Meta
 // ──────────────────────────────────────────────────────────────────────────────
 
-const String kAppName = 'CrisisLink';
+const String kAppName = 'BayMax';
 const String kAppTagline = 'Real-time Crisis Intelligence';
-const String kAppVersion = '1.0.0';
+const String kApiBaseUrl = 'http://34.133.35.93:8000';
+
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Brand Colors (hex)

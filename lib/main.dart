@@ -24,11 +24,7 @@ void main() async {
     debugPrint("Firebase initialization checked: $e");
   }
 
-  runApp(
-    const ProviderScope(
-      child: CrisisLinkApp(),
-    ),
-  );
+  runApp(const ProviderScope(child: CrisisLinkApp()));
 }
 
 class CrisisLinkApp extends ConsumerWidget {
@@ -39,14 +35,18 @@ class CrisisLinkApp extends ConsumerWidget {
     final router = ref.watch(routerProvider);
 
     // Seed dummy/demo data if the Firestore collection is currently empty
-    ref.read(firestoreServiceProvider).seedDemoData().then((_) {
-      debugPrint("Demo data seeding checked/completed successfully.");
-    }).catchError((error) {
-      debugPrint("Warning: Failed to seed demo data: $error");
-    });
+    ref
+        .read(firestoreServiceProvider)
+        .seedDemoData()
+        .then((_) {
+          debugPrint("Demo data seeding checked/completed successfully.");
+        })
+        .catchError((error) {
+          debugPrint("Warning: Failed to seed demo data: $error");
+        });
 
     return MaterialApp.router(
-      title: 'CrisisLink',
+      title: 'BayMax',
       theme: AppTheme.darkTheme,
       routerConfig: router,
       debugShowCheckedModeBanner: false,

@@ -12,6 +12,7 @@ from app.api.endpoints import (
 from fastapi.staticfiles import StaticFiles
 from app.database import engine, Base, SessionLocal
 from app.services.knowledge_base_service import populate_initial_kb
+from fastapi.middleware.cors import CORSMiddleware
 
 # ── Logging ────────────────────────────────────────────────────────────
 logging.basicConfig(
@@ -39,6 +40,13 @@ app = FastAPI(
         "coordinates response via a 14-agent LLM pipeline (Gemini)."
     ),
     version="2.0.0",
+)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # ── Routers ────────────────────────────────────────────────────────────

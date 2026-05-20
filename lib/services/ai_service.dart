@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter/services.dart';
+import 'package:crisis_link/core/constants.dart';
 import 'package:crisis_link/models/strategy_result_model.dart';
 
 /// Provider for AIService singleton
@@ -14,8 +16,13 @@ final aiServiceProvider = Provider<AIService>((ref) {
 class AIService {
   final _random = Random();
 
+  // Play a click sound for successful AI calls
+  void _playSound() {
+    SystemSound.play(SystemSoundType.click);
+  }
+
   /// Resolve API base URL dynamically based on Platform/Environment
-  String get _baseUrl => 'http://34.133.35.93:8000';
+  String get _baseUrl => kApiBaseUrl;
 
   /// Analyze an incident and return AI-generated recommendations
   Future<String> analyzeIncident(String description, String type) async {
@@ -54,7 +61,8 @@ class AIService {
           }
         }
         if (sb.isNotEmpty) {
-          return sb.toString();
+          _playSound();
+      return sb.toString();
         }
       }
     } catch (e) {
@@ -143,6 +151,7 @@ class AIService {
           warningsList.add(p['action'] ?? '');
         }
 
+        _playSound();
         return {
           'riskLevel': riskLevel,
           'riskLabel': severity.toString().toUpperCase(),
@@ -224,6 +233,7 @@ class AIService {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
+        _playSound();
         return StrategyResultModel(
           strategyName: data['strategy'] ?? strategyType.toUpperCase(),
           congestionReduction: (data['congestionReduction'] as num?)?.toDouble() ?? 50.0,
@@ -240,6 +250,7 @@ class AIService {
     // --- FALLBACK MOCK LOGIC ---
     await Future.delayed(const Duration(milliseconds: 800));
     final resourceAllocation = (inputs['resourceAllocation'] as double?) ?? 50.0;
+    _playSound();
     switch (strategyType) {
       case 'aggressive':
         return StrategyResultModel(

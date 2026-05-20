@@ -64,8 +64,8 @@ final userProfileProvider = Provider<UserProfile>((ref) {
     final daysActive = DateTime.now().difference(creationTime).inDays;
     return UserProfile(
       uid: user.uid,
-      displayName: user.displayName ?? 'CrisisLink User',
-      email: user.email ?? 'user@crisislink.app',
+      displayName: user.displayName ?? 'BayMax User',
+      email: user.email ?? 'user@BayMax.app',
       photoUrl: user.photoURL,
       incidentsReported: 12,
       alertsSubscribed: 8,
@@ -74,8 +74,8 @@ final userProfileProvider = Provider<UserProfile>((ref) {
   }
   return UserProfile(
     uid: 'demo',
-    displayName: 'CrisisLink User',
-    email: 'user@crisislink.app',
+    displayName: 'BayMax User',
+    email: 'user@BayMax.app',
     incidentsReported: 12,
     alertsSubscribed: 8,
     daysActive: 47,
@@ -248,9 +248,10 @@ class _ProfileHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final initial = profile.displayName.isNotEmpty
-        ? profile.displayName[0].toUpperCase()
-        : 'U';
+    final initial =
+        profile.displayName.isNotEmpty
+            ? profile.displayName[0].toUpperCase()
+            : 'U';
 
     return Container(
       width: double.infinity,
@@ -278,10 +279,7 @@ class _ProfileHeader extends StatelessWidget {
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [
-                  _kAccentAmber,
-                  _kAccentAmber.withValues(alpha: 0.7),
-                ],
+                colors: [_kAccentAmber, _kAccentAmber.withValues(alpha: 0.7)],
               ),
               boxShadow: [
                 BoxShadow(
@@ -318,10 +316,7 @@ class _ProfileHeader extends StatelessWidget {
           // Email
           Text(
             profile.email,
-            style: GoogleFonts.inter(
-              color: Colors.white54,
-              fontSize: 14,
-            ),
+            style: GoogleFonts.inter(color: Colors.white54, fontSize: 14),
           ),
           const SizedBox(height: 16),
 
@@ -337,7 +332,8 @@ class _ProfileHeader extends StatelessWidget {
                   backgroundColor: _kSurface,
                   behavior: SnackBarBehavior.floating,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               );
             },
@@ -347,8 +343,7 @@ class _ProfileHeader extends StatelessWidget {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             ),
             icon: const Icon(Icons.edit_rounded, size: 18),
             label: Text(
@@ -358,10 +353,7 @@ class _ProfileHeader extends StatelessWidget {
           ),
         ],
       ),
-    )
-        .animate()
-        .fadeIn(duration: 500.ms)
-        .slideY(begin: 0.1, end: 0);
+    ).animate().fadeIn(duration: 500.ms).slideY(begin: 0.1, end: 0);
   }
 }
 
@@ -374,29 +366,29 @@ class _StatsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      children: [
-        _StatItem(
-          value: '${profile.incidentsReported}',
-          label: 'Incidents\nReported',
-          icon: Icons.report_rounded,
-          color: _kEmergencyRed,
-        ),
-        const SizedBox(width: 12),
-        _StatItem(
-          value: '${profile.alertsSubscribed}',
-          label: 'Alerts\nSubscribed',
-          icon: Icons.notifications_active_rounded,
-          color: _kAccentAmber,
-        ),
-        const SizedBox(width: 12),
-        _StatItem(
-          value: '${profile.daysActive}',
-          label: 'Days\nActive',
-          icon: Icons.calendar_today_rounded,
-          color: _kSuccessTeal,
-        ),
-      ],
-    )
+          children: [
+            _StatItem(
+              value: '${profile.incidentsReported}',
+              label: 'Incidents\nReported',
+              icon: Icons.report_rounded,
+              color: _kEmergencyRed,
+            ),
+            const SizedBox(width: 12),
+            _StatItem(
+              value: '${profile.alertsSubscribed}',
+              label: 'Alerts\nSubscribed',
+              icon: Icons.notifications_active_rounded,
+              color: _kAccentAmber,
+            ),
+            const SizedBox(width: 12),
+            _StatItem(
+              value: '${profile.daysActive}',
+              label: 'Days\nActive',
+              icon: Icons.calendar_today_rounded,
+              color: _kSuccessTeal,
+            ),
+          ],
+        )
         .animate()
         .fadeIn(duration: 500.ms, delay: 150.ms)
         .slideY(begin: 0.1, end: 0);
@@ -460,55 +452,55 @@ class _EmergencySubscriptionsCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Container(
-      decoration: BoxDecoration(
-        color: _kCardBg,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white10),
-      ),
-      child: Column(
-        children: [
-          _SubscriptionTile(
-            title: 'Weather Alerts',
-            subtitle: 'Storms, extreme temperatures, wind advisories',
-            icon: Icons.thunderstorm_rounded,
-            iconColor: Colors.blueAccent,
-            provider: weatherSubProvider,
+          decoration: BoxDecoration(
+            color: _kCardBg,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white10),
           ),
-          const Divider(color: Colors.white10, height: 1, indent: 60),
-          _SubscriptionTile(
-            title: 'Flood Warnings',
-            subtitle: 'Flash floods, river overflow, coastal surge',
-            icon: Icons.water_rounded,
-            iconColor: Colors.lightBlue,
-            provider: floodSubProvider,
+          child: Column(
+            children: [
+              _SubscriptionTile(
+                title: 'Weather Alerts',
+                subtitle: 'Storms, extreme temperatures, wind advisories',
+                icon: Icons.thunderstorm_rounded,
+                iconColor: Colors.blueAccent,
+                provider: weatherSubProvider,
+              ),
+              const Divider(color: Colors.white10, height: 1, indent: 60),
+              _SubscriptionTile(
+                title: 'Flood Warnings',
+                subtitle: 'Flash floods, river overflow, coastal surge',
+                icon: Icons.water_rounded,
+                iconColor: Colors.lightBlue,
+                provider: floodSubProvider,
+              ),
+              const Divider(color: Colors.white10, height: 1, indent: 60),
+              _SubscriptionTile(
+                title: 'Fire Alerts',
+                subtitle: 'Wildfires, building fires, smoke advisories',
+                icon: Icons.local_fire_department_rounded,
+                iconColor: Colors.orangeAccent,
+                provider: fireSubProvider,
+              ),
+              const Divider(color: Colors.white10, height: 1, indent: 60),
+              _SubscriptionTile(
+                title: 'Medical Emergencies',
+                subtitle: 'Public health alerts, medical supply notices',
+                icon: Icons.medical_services_rounded,
+                iconColor: _kEmergencyRed,
+                provider: medicalSubProvider,
+              ),
+              const Divider(color: Colors.white10, height: 1, indent: 60),
+              _SubscriptionTile(
+                title: 'Infrastructure',
+                subtitle: 'Road closures, bridge damage, power outages',
+                icon: Icons.construction_rounded,
+                iconColor: _kAccentAmber,
+                provider: infraSubProvider,
+              ),
+            ],
           ),
-          const Divider(color: Colors.white10, height: 1, indent: 60),
-          _SubscriptionTile(
-            title: 'Fire Alerts',
-            subtitle: 'Wildfires, building fires, smoke advisories',
-            icon: Icons.local_fire_department_rounded,
-            iconColor: Colors.orangeAccent,
-            provider: fireSubProvider,
-          ),
-          const Divider(color: Colors.white10, height: 1, indent: 60),
-          _SubscriptionTile(
-            title: 'Medical Emergencies',
-            subtitle: 'Public health alerts, medical supply notices',
-            icon: Icons.medical_services_rounded,
-            iconColor: _kEmergencyRed,
-            provider: medicalSubProvider,
-          ),
-          const Divider(color: Colors.white10, height: 1, indent: 60),
-          _SubscriptionTile(
-            title: 'Infrastructure',
-            subtitle: 'Road closures, bridge damage, power outages',
-            icon: Icons.construction_rounded,
-            iconColor: _kAccentAmber,
-            provider: infraSubProvider,
-          ),
-        ],
-      ),
-    )
+        )
         .animate()
         .fadeIn(duration: 500.ms, delay: 250.ms)
         .slideY(begin: 0.1, end: 0);
@@ -558,10 +550,7 @@ class _SubscriptionTile extends ConsumerWidget {
       ),
       subtitle: Text(
         subtitle,
-        style: GoogleFonts.inter(
-          color: Colors.white38,
-          fontSize: 12,
-        ),
+        style: GoogleFonts.inter(color: Colors.white38, fontSize: 12),
       ),
     );
   }
@@ -586,12 +575,14 @@ class _NotificationSettingsCard extends ConsumerWidget {
         children: [
           SwitchListTile(
             value: pushEnabled,
-            onChanged: (val) =>
-                ref.read(pushNotifProvider.notifier).state = val,
+            onChanged:
+                (val) => ref.read(pushNotifProvider.notifier).state = val,
             activeThumbColor: _kAccentAmber,
             inactiveTrackColor: Colors.white10,
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 4,
+            ),
             secondary: Container(
               width: 40,
               height: 40,
@@ -599,8 +590,11 @@ class _NotificationSettingsCard extends ConsumerWidget {
                 color: _kAccentAmber.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.notifications_rounded,
-                  color: _kAccentAmber, size: 20),
+              child: const Icon(
+                Icons.notifications_rounded,
+                color: _kAccentAmber,
+                size: 20,
+              ),
             ),
             title: Text(
               'Push Notifications',
@@ -618,12 +612,14 @@ class _NotificationSettingsCard extends ConsumerWidget {
           const Divider(color: Colors.white10, height: 1, indent: 60),
           SwitchListTile(
             value: emailEnabled,
-            onChanged: (val) =>
-                ref.read(emailAlertProvider.notifier).state = val,
+            onChanged:
+                (val) => ref.read(emailAlertProvider.notifier).state = val,
             activeThumbColor: _kAccentAmber,
             inactiveTrackColor: Colors.white10,
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 4,
+            ),
             secondary: Container(
               width: 40,
               height: 40,
@@ -631,8 +627,11 @@ class _NotificationSettingsCard extends ConsumerWidget {
                 color: Colors.blueAccent.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.email_rounded,
-                  color: Colors.blueAccent, size: 20),
+              child: const Icon(
+                Icons.email_rounded,
+                color: Colors.blueAccent,
+                size: 20,
+              ),
             ),
             title: Text(
               'Email Alerts',
@@ -650,12 +649,13 @@ class _NotificationSettingsCard extends ConsumerWidget {
           const Divider(color: Colors.white10, height: 1, indent: 60),
           SwitchListTile(
             value: smsEnabled,
-            onChanged: (val) =>
-                ref.read(smsAlertProvider.notifier).state = val,
+            onChanged: (val) => ref.read(smsAlertProvider.notifier).state = val,
             activeThumbColor: _kAccentAmber,
             inactiveTrackColor: Colors.white10,
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 4,
+            ),
             secondary: Container(
               width: 40,
               height: 40,
@@ -663,8 +663,11 @@ class _NotificationSettingsCard extends ConsumerWidget {
                 color: _kSuccessTeal.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.sms_rounded,
-                  color: _kSuccessTeal, size: 20),
+              child: const Icon(
+                Icons.sms_rounded,
+                color: _kSuccessTeal,
+                size: 20,
+              ),
             ),
             title: Text(
               'SMS Alerts',
@@ -691,8 +694,11 @@ class _NotificationSettingsCard extends ConsumerWidget {
                     color: Colors.purpleAccent.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.radar_rounded,
-                      color: Colors.purpleAccent, size: 20),
+                  child: const Icon(
+                    Icons.radar_rounded,
+                    color: Colors.purpleAccent,
+                    size: 20,
+                  ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -710,14 +716,18 @@ class _NotificationSettingsCard extends ConsumerWidget {
                       Text(
                         'Receive alerts within ${alertRadius.toInt()} km radius',
                         style: GoogleFonts.inter(
-                            color: Colors.white38, fontSize: 12),
+                          color: Colors.white38,
+                          fontSize: 12,
+                        ),
                       ),
                     ],
                   ),
                 ),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: _kAccentAmber.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(8),
@@ -743,25 +753,21 @@ class _NotificationSettingsCard extends ConsumerWidget {
                 thumbColor: _kAccentAmber,
                 overlayColor: _kAccentAmber.withValues(alpha: 0.2),
                 trackHeight: 4,
-                thumbShape:
-                    const RoundSliderThumbShape(enabledThumbRadius: 8),
+                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
               ),
               child: Slider(
                 value: alertRadius,
                 min: 5,
                 max: 100,
                 divisions: 19,
-                onChanged: (val) =>
-                    ref.read(alertRadiusProvider.notifier).state = val,
+                onChanged:
+                    (val) => ref.read(alertRadiusProvider.notifier).state = val,
               ),
             ),
           ),
         ],
       ),
-    )
-        .animate()
-        .fadeIn(duration: 500.ms, delay: 350.ms)
-        .slideY(begin: 0.1, end: 0);
+    ).animate().fadeIn(duration: 500.ms, delay: 350.ms).slideY(begin: 0.1, end: 0);
   }
 }
 
@@ -789,108 +795,132 @@ class _IncidentHistoryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-        color: _kCardBg,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white10),
-      ),
-      child: Column(
-        children: incidents.asMap().entries.map((entry) {
-          final idx = entry.key;
-          final incident = entry.value;
-          final sevColor = _severityColor(incident.severity);
-          final isLast = idx == incidents.length - 1;
+          decoration: BoxDecoration(
+            color: _kCardBg,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white10),
+          ),
+          child: Column(
+            children:
+                incidents.asMap().entries.map((entry) {
+                  final idx = entry.key;
+                  final incident = entry.value;
+                  final sevColor = _severityColor(incident.severity);
+                  final isLast = idx == incidents.length - 1;
 
-          return Column(
-            children: [
-              InkWell(
-                onTap: () {
-                  showModalBottomSheet(
-                    context: context,
-                    backgroundColor: _kSurface,
-                    shape: const RoundedRectangleBorder(
-                      borderRadius:
-                          BorderRadius.vertical(top: Radius.circular(20)),
-                    ),
-                    builder: (ctx) => _IncidentDetailSheet(incident: incident),
-                  );
-                },
-                borderRadius: BorderRadius.vertical(
-                  top: idx == 0 ? const Radius.circular(16) : Radius.zero,
-                  bottom: isLast ? const Radius.circular(16) : Radius.zero,
-                ),
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  child: Row(
+                  return Column(
                     children: [
-                      Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: sevColor.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child:
-                            Icon(incident.typeIcon, color: sevColor, size: 20),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              incident.title,
-                              style: GoogleFonts.inter(
-                                color: Colors.white,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              DateFormat('MMM d, yyyy').format(incident.date),
-                              style: GoogleFonts.inter(
-                                color: Colors.white38,
-                                fontSize: 12,
+                      InkWell(
+                        onTap: () {
+                          showModalBottomSheet(
+                            context: context,
+                            backgroundColor: _kSurface,
+                            shape: const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.vertical(
+                                top: Radius.circular(20),
                               ),
                             ),
-                          ],
+                            builder:
+                                (ctx) =>
+                                    _IncidentDetailSheet(incident: incident),
+                          );
+                        },
+                        borderRadius: BorderRadius.vertical(
+                          top:
+                              idx == 0
+                                  ? const Radius.circular(16)
+                                  : Radius.zero,
+                          bottom:
+                              isLast ? const Radius.circular(16) : Radius.zero,
                         ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: sevColor.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          incident.severity.toUpperCase(),
-                          style: GoogleFonts.inter(
-                            color: sevColor,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.5,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: sevColor.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Icon(
+                                  incident.typeIcon,
+                                  color: sevColor,
+                                  size: 20,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      incident.title,
+                                      style: GoogleFonts.inter(
+                                        color: Colors.white,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      DateFormat(
+                                        'MMM d, yyyy',
+                                      ).format(incident.date),
+                                      style: GoogleFonts.inter(
+                                        color: Colors.white38,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: sevColor.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  incident.severity.toUpperCase(),
+                                  style: GoogleFonts.inter(
+                                    color: sevColor,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              const Icon(
+                                Icons.chevron_right_rounded,
+                                color: Colors.white24,
+                                size: 20,
+                              ),
+                            ],
                           ),
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      const Icon(Icons.chevron_right_rounded,
-                          color: Colors.white24, size: 20),
+                      if (!isLast)
+                        const Divider(
+                          color: Colors.white10,
+                          height: 1,
+                          indent: 60,
+                        ),
                     ],
-                  ),
-                ),
-              ),
-              if (!isLast)
-                const Divider(color: Colors.white10, height: 1, indent: 60),
-            ],
-          );
-        }).toList(),
-      ),
-    )
+                  );
+                }).toList(),
+          ),
+        )
         .animate()
         .fadeIn(duration: 500.ms, delay: 450.ms)
         .slideY(begin: 0.1, end: 0);
@@ -993,11 +1023,15 @@ class _IncidentDetailSheet extends StatelessWidget {
                     Text(
                       'Severity: ',
                       style: GoogleFonts.inter(
-                          color: Colors.white54, fontSize: 13),
+                        color: Colors.white54,
+                        fontSize: 13,
+                      ),
                     ),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: sevColor.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(8),
@@ -1015,7 +1049,7 @@ class _IncidentDetailSheet extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'This incident was reported and logged in the CrisisLink system. '
+                  'This incident was reported and logged in the BayMax system. '
                   'Emergency response teams were notified and appropriate actions '
                   'were taken based on the severity assessment.',
                   style: GoogleFonts.inter(
@@ -1052,10 +1086,7 @@ class _AppInfoCard extends StatelessWidget {
             title: 'Version',
             trailing: Text(
               '1.0.0',
-              style: GoogleFonts.inter(
-                color: Colors.white38,
-                fontSize: 13,
-              ),
+              style: GoogleFonts.inter(color: Colors.white38, fontSize: 13),
             ),
           ),
           const Divider(color: Colors.white10, height: 1, indent: 60),
@@ -1066,12 +1097,15 @@ class _AppInfoCard extends StatelessWidget {
             onTap: () {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('Terms of Service',
-                      style: GoogleFonts.inter(color: Colors.white)),
+                  content: Text(
+                    'Terms of Service',
+                    style: GoogleFonts.inter(color: Colors.white),
+                  ),
                   backgroundColor: _kSurface,
                   behavior: SnackBarBehavior.floating,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               );
             },
@@ -1084,12 +1118,15 @@ class _AppInfoCard extends StatelessWidget {
             onTap: () {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('Privacy Policy',
-                      style: GoogleFonts.inter(color: Colors.white)),
+                  content: Text(
+                    'Privacy Policy',
+                    style: GoogleFonts.inter(color: Colors.white),
+                  ),
                   backgroundColor: _kSurface,
                   behavior: SnackBarBehavior.floating,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               );
             },
@@ -1098,11 +1135,11 @@ class _AppInfoCard extends StatelessWidget {
           _InfoTile(
             icon: Icons.favorite_outline_rounded,
             iconColor: _kEmergencyRed,
-            title: 'About CrisisLink',
+            title: 'About BayMax',
             onTap: () {
               showAboutDialog(
                 context: context,
-                applicationName: 'CrisisLink',
+                applicationName: 'BayMax',
                 applicationVersion: '1.0.0',
                 applicationIcon: Container(
                   width: 48,
@@ -1111,12 +1148,15 @@ class _AppInfoCard extends StatelessWidget {
                     color: _kAccentAmber,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.crisis_alert_rounded,
-                      color: _kPrimary, size: 28),
+                  child: const Icon(
+                    Icons.crisis_alert_rounded,
+                    color: _kPrimary,
+                    size: 28,
+                  ),
                 ),
                 children: [
                   Text(
-                    'CrisisLink is an AI-assisted emergency operations and public safety application designed to help communities prepare for, respond to, and recover from crisis situations.',
+                    'BayMax is an AI-assisted emergency operations and public safety application designed to help communities prepare for, respond to, and recover from crisis situations.',
                     style: GoogleFonts.inter(fontSize: 13, height: 1.5),
                   ),
                 ],
@@ -1125,10 +1165,7 @@ class _AppInfoCard extends StatelessWidget {
           ),
         ],
       ),
-    )
-        .animate()
-        .fadeIn(duration: 500.ms, delay: 550.ms)
-        .slideY(begin: 0.1, end: 0);
+    ).animate().fadeIn(duration: 500.ms, delay: 550.ms).slideY(begin: 0.1, end: 0);
   }
 }
 
@@ -1169,7 +1206,8 @@ class _InfoTile extends StatelessWidget {
           fontWeight: FontWeight.w500,
         ),
       ),
-      trailing: trailing ??
+      trailing:
+          trailing ??
           const Icon(Icons.chevron_right_rounded, color: Colors.white24),
     );
   }
@@ -1180,27 +1218,27 @@ class _LogoutButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return SizedBox(
-      width: double.infinity,
-      height: 52,
-      child: OutlinedButton.icon(
-        onPressed: () => _showLogoutDialog(context, ref),
-        style: OutlinedButton.styleFrom(
-          foregroundColor: _kEmergencyRed,
-          side: BorderSide(color: _kEmergencyRed.withValues(alpha: 0.5)),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
+          width: double.infinity,
+          height: 52,
+          child: OutlinedButton.icon(
+            onPressed: () => _showLogoutDialog(context, ref),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: _kEmergencyRed,
+              side: BorderSide(color: _kEmergencyRed.withValues(alpha: 0.5)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
+            icon: const Icon(Icons.logout_rounded, size: 20),
+            label: Text(
+              'Logout',
+              style: GoogleFonts.inter(
+                fontWeight: FontWeight.w600,
+                fontSize: 16,
+              ),
+            ),
           ),
-        ),
-        icon: const Icon(Icons.logout_rounded, size: 20),
-        label: Text(
-          'Logout',
-          style: GoogleFonts.inter(
-            fontWeight: FontWeight.w600,
-            fontSize: 16,
-          ),
-        ),
-      ),
-    )
+        )
         .animate()
         .fadeIn(duration: 500.ms, delay: 650.ms)
         .slideY(begin: 0.1, end: 0);
@@ -1209,57 +1247,60 @@ class _LogoutButton extends ConsumerWidget {
   void _showLogoutDialog(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: _kSurface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(
-          'Logout',
-          style: GoogleFonts.urbanist(
-            color: Colors.white,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        content: Text(
-          'Are you sure you want to logout? You will need to sign in again to access your profile and settings.',
-          style: GoogleFonts.inter(
-            color: Colors.white60,
-            fontSize: 14,
-            height: 1.5,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: Text(
-              'Cancel',
-              style: GoogleFonts.inter(
-                color: Colors.white54,
-                fontWeight: FontWeight.w600,
-              ),
+      builder:
+          (ctx) => AlertDialog(
+            backgroundColor: _kSurface,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
             ),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.of(ctx).pop();
-              await ref.read(authServiceProvider).logout();
-              if (context.mounted) {
-                context.go('/auth');
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _kEmergencyRed,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            child: Text(
+            title: Text(
               'Logout',
-              style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+              style: GoogleFonts.urbanist(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+              ),
             ),
+            content: Text(
+              'Are you sure you want to logout? You will need to sign in again to access your profile and settings.',
+              style: GoogleFonts.inter(
+                color: Colors.white60,
+                fontSize: 14,
+                height: 1.5,
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: Text(
+                  'Cancel',
+                  style: GoogleFonts.inter(
+                    color: Colors.white54,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  Navigator.of(ctx).pop();
+                  await ref.read(authServiceProvider).logout();
+                  if (context.mounted) {
+                    context.go('/auth');
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _kEmergencyRed,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                child: Text(
+                  'Logout',
+                  style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 }
