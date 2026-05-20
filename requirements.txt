@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+pydantic
+sqlalchemy
+geoalchemy2
+psycopg2-binary
+celery
+redis
+shapely
+google-genai
+python-dotenv
+httpx
+feedparser
+xmltodict
