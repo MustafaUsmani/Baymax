@@ -1,1 +1,1 @@
-# CIRO+ API package
+# API package initializer
