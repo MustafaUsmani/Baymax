@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CIRO+ Interactive Dashboard</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --bg-dark: #0f111a;
+            --panel-bg: rgba(25, 28, 36, 0.7);
+            --accent-cyan: #00f2fe;
+            --accent-purple: #4facfe;
+            --text-main: #e2e8f0;
+            --text-muted: #94a3b8;
+            --danger: #ef4444;
+            --success: #10b981;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(0, 242, 254, 0.05), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(79, 172, 254, 0.05), transparent 25%);
+        }
+
+        .glass-panel {
+            background: var(--panel-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease;
+        }
+
+        .glass-panel:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        h1, h2, h3 {
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            background: linear-gradient(to right, var(--accent-cyan), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .form-control, .form-select {
+            background-color: rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            background-color: rgba(0,0,0,0.3);
+            color: white;
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 0 0.25rem rgba(0, 242, 254, 0.25);
+        }
+
+        .btn-glow {
+            background: linear-gradient(to right, var(--accent-cyan), var(--accent-purple));
+            border: none;
+            color: white;
+            font-weight: 600;
+            padding: 10px 24px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-glow:hover {
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.4);
+            transform: scale(1.02);
+            color: white;
+        }
+
+        #map {
+            height: 400px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .status-safe { background: rgba(16, 185, 129, 0.2); color: var(--success); border: 1px solid var(--success); }
+        .status-danger { background: rgba(239, 68, 68, 0.2); color: var(--danger); border: 1px solid var(--danger); }
+        
+        /* Strategy Cards */
+        .strategy-card {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 16px;
+            height: 100%;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .strategy-header {
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <h1>CIRO+ Command Center</h1>
+        <div class="text-muted">Agentic Crisis Orchestration v2.0</div>
+    </div>
+
+    <!-- Strategy Simulator -->
+    <div class="glass-panel">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Strategy Simulator</h2>
+            <button class="btn-glow" id="runSimulationBtn" onclick="runSimulation()">Run AI Simulation</button>
+        </div>
+        <p class="text-muted">Select an incident to simulate 3 AI-generated response strategies in parallel and compare outcomes.</p>
+        
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <label class="form-label">Target Incident ID</label>
+                <input type="number" id="simIncidentId" class="form-control" value="1" placeholder="e.g. 1">
+            </div>
+        </div>
+
+        <div id="simLoading" class="text-center d-none py-4">
+            <div class="spinner-border text-info" role="status"></div>
+            <div class="mt-2 text-muted">Antigravity Orchestrator running 3 concurrent agents...</div>
+        </div>
+
+        <div id="simResults" class="row g-4 d-none">
+            <!-- Aggressive -->
+            <div class="col-md-4">
+                <div class="strategy-card border-danger">
+                    <div class="strategy-header text-danger">Aggressive Strategy</div>
+                    <div id="aggReasoning" class="mb-3 text-muted" style="font-size:0.9rem;"></div>
+                    <canvas id="aggChart"></canvas>
+                </div>
+            </div>
+            <!-- Balanced -->
+            <div class="col-md-4">
+                <div class="strategy-card border-info">
+                    <div class="strategy-header text-info">Balanced Strategy</div>
+                    <div id="balReasoning" class="mb-3 text-muted" style="font-size:0.9rem;"></div>
+                    <canvas id="balChart"></canvas>
+                </div>
+            </div>
+            <!-- Conservative -->
+            <div class="col-md-4">
+                <div class="strategy-card border-success">
+                    <div class="strategy-header text-success">Conservative Strategy</div>
+                    <div id="conReasoning" class="mb-3 text-muted" style="font-size:0.9rem;"></div>
+                    <canvas id="conChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Family Tracker -->
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="glass-panel h-100">
+                <h2>Family Tracking</h2>
+                <p class="text-muted">Register family members and monitor their safety status against live PostGIS crisis radii.</p>
+                
+                <form id="registerForm" onsubmit="registerMember(event)" class="mb-4">
+                    <div class="mb-3">
+                        <input type="text" id="fmName" class="form-control" placeholder="Name" required>
+                    </div>
+                    <div class="mb-3">
+                        <input type="text" id="fmPhone" class="form-control" placeholder="Phone Number" required>
+                    </div>
+                    <button type="submit" class="btn-glow w-100">Register Member</button>
+                </form>
+
+                <div id="familyList" class="d-flex flex-column gap-2">
+                    <!-- Members injected here -->
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="glass-panel p-2 h-100">
+                <div id="map"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    // --- Global State ---
+    let map;
+    let markers = {};
+    const API_BASE = window.location.origin;
+
+    // --- Initialization ---
+    document.addEventListener("DOMContentLoaded", () => {
+        initMap();
+        loadFamilyMembers();
+    });
+
+    function initMap() {
+        map = L.map('map').setView([33.6844, 73.0479], 12); // Default to Islamabad
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+        }).addTo(map);
+    }
+
+    // --- Strategy Simulator ---
+    let charts = {};
+    
+    async function runSimulation() {
+        const incId = document.getElementById('simIncidentId').value;
+        if(!incId) return alert('Enter an incident ID');
+
+        const btn = document.getElementById('runSimulationBtn');
+        const loading = document.getElementById('simLoading');
+        const results = document.getElementById('simResults');
+
+        btn.disabled = true;
+        loading.classList.remove('d-none');
+        results.classList.add('d-none');
+
+        try {
+            const res = await fetch(`${API_BASE}/actions/simulate/strategies`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({incident_id: parseInt(incId)})
+            });
+            const data = await res.json();
+            
+            if(data.detail) throw new Error(data.detail);
+
+            renderCharts(data.strategies);
+            results.classList.remove('d-none');
+        } catch (e) {
+            alert('Simulation failed: ' + e.message);
+        } finally {
+            btn.disabled = false;
+            loading.classList.add('d-none');
+        }
+    }
+
+    function renderCharts(strategies) {
+        const strats = ['aggressive', 'balanced', 'conservative'];
+        const labels = ['Benefit Score', 'Risk Score', 'Improvement %'];
+        
+        strats.forEach(s => {
+            const data = strategies[s];
+            const ctx = document.getElementById(`${s.substring(0,3)}Chart`);
+            
+            // Set LLM reasoning
+            document.getElementById(`${s.substring(0,3)}Reasoning`).innerText = 
+                data.reasoning || data.after_state?.summary || `Generated ${s} scenario.`;
+
+            if(charts[s]) charts[s].destroy();
+
+            const chartData = [
+                (data.benefit_score || 0) * 100,
+                (data.risk_score || 0) * 100,
+                (data.improvement_percentage || 0)
+            ];
+
+            const colors = {
+                'aggressive': 'rgba(239, 68, 68, 0.6)',
+                'balanced': 'rgba(0, 242, 254, 0.6)',
+                'conservative': 'rgba(16, 185, 129, 0.6)'
+            };
+
+            charts[s] = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: `${s.toUpperCase()} Metrics`,
+                        data: chartData,
+                        backgroundColor: colors[s],
+                        borderColor: colors[s].replace('0.6', '1'),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(255,255,255,0.1)' },
+                            grid: { color: 'rgba(255,255,255,0.1)' },
+                            pointLabels: { color: '#94a3b8' },
+                            ticks: { display: false, max: 100, min: 0 }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        });
+    }
+
+    // --- Family Tracking ---
+    const USER_ID = "admin_user";
+
+    async function registerMember(e) {
+        e.preventDefault();
+        const name = document.getElementById('fmName').value;
+        const phone = document.getElementById('fmPhone').value;
+
+        await fetch(`${API_BASE}/tracking/register`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({user_id: USER_ID, name, phone_number: phone})
+        });
+
+        document.getElementById('registerForm').reset();
+        loadFamilyMembers();
+    }
+
+    async function loadFamilyMembers() {
+        const res = await fetch(`${API_BASE}/tracking/list/${USER_ID}`);
+        const members = await res.json();
+        
+        const list = document.getElementById('familyList');
+        list.innerHTML = '';
+
+        for(let m of members) {
+            // Also fetch real-time safety status
+            const statRes = await fetch(`${API_BASE}/tracking/status/${m.id}`);
+            const statData = await statRes.json();
+            
+            const badgeClass = statData.is_safe ? 'status-safe' : 'status-danger';
+            const badgeText = statData.is_safe ? 'SAFE' : 'AT RISK';
+            
+            const div = document.createElement('div');
+            div.className = 'd-flex justify-content-between align-items-center p-3 rounded';
+            div.style.background = 'rgba(0,0,0,0.3)';
+            div.style.border = '1px solid rgba(255,255,255,0.05)';
+            
+            div.innerHTML = `
+                <div>
+                    <div class="fw-bold">${m.name}</div>
+                    <div class="text-muted" style="font-size:0.8rem">${m.phone_number}</div>
+                    ${statData.warnings ? `<div class="text-danger mt-1" style="font-size:0.75rem">${statData.warnings.join('<br>')}</div>` : ''}
+                </div>
+                <div class="text-end">
+                    <span class="status-badge ${badgeClass}">${badgeText}</span>
+                    <button class="btn btn-sm btn-outline-info mt-2 d-block" onclick="updateLocationSim(${m.id})">Update Loc</button>
+                </div>
+            `;
+            list.appendChild(div);
+        }
+    }
+
+    // Simulate location update (random near Islamabad)
+    async function updateLocationSim(id) {
+        const lat = 33.6 + (Math.random() * 0.1);
+        const lon = 73.0 + (Math.random() * 0.1);
+
+        await fetch(`${API_BASE}/tracking/location/${id}`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({location: {lat, lon}})
+        });
+
+        if(markers[id]) map.removeLayer(markers[id]);
+        markers[id] = L.marker([lat, lon]).addTo(map).bindPopup(`Member ID: ${id}`);
+        
+        loadFamilyMembers();
+    }
+</script>
+</body>
+</html>
