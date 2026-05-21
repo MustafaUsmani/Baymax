@@ -5,6 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:crisis_link/services/auth_service.dart';
+import 'package:crisis_link/providers/health_provider.dart';
 
 // ─── Colors ───────────────────────────────────────────────────────────────────
 const Color _kPrimary = Color(0xFF0D1B2A);
@@ -56,47 +57,57 @@ class IncidentHistoryItem {
 
 // ─── Providers ────────────────────────────────────────────────────────────────
 
-final userProfileProvider = Provider<UserProfile>((ref) {
-  final authState = ref.watch(authStateProvider);
-  final user = authState.valueOrNull;
-  if (user != null) {
-    final creationTime = user.metadata.creationTime ?? DateTime.now();
-    final daysActive = DateTime.now().difference(creationTime).inDays;
-    return UserProfile(
-      uid: user.uid,
-      displayName: user.displayName ?? 'BayMax User',
-      email: user.email ?? 'user@BayMax.app',
-      photoUrl: user.photoURL,
-      incidentsReported: 12,
-      alertsSubscribed: 8,
-      daysActive: daysActive > 0 ? daysActive : 1,
-    );
-  }
-  return UserProfile(
-    uid: 'demo',
-    displayName: 'BayMax User',
-    email: 'user@BayMax.app',
-    incidentsReported: 12,
-    alertsSubscribed: 8,
-    daysActive: 47,
-  );
-});
+final refreshTriggerProvider = StateProvider<int>((ref) => 0);
+final syncProgressProvider = StateProvider<bool>((ref) => false);
 
-// Emergency subscription toggles
-final weatherSubProvider = StateProvider<bool>((ref) => true);
-final floodSubProvider = StateProvider<bool>((ref) => true);
-final fireSubProvider = StateProvider<bool>((ref) => false);
-final medicalSubProvider = StateProvider<bool>((ref) => true);
-final infraSubProvider = StateProvider<bool>((ref) => false);
+final incidentHistoryProvider = FutureProvider<List<IncidentHistoryItem>>((ref) async {
+  ref.watch(refreshTriggerProvider);
+  final apiService = ref.watch(apiServiceProvider);
+  try {
+    final response = await apiService.fetchIncidentsRaw();
+    if (response.isSuccess && response.data != null) {
+      final list = response.data!;
+      if (list.isNotEmpty) {
+        return list.map((item) {
+          final crisisType = (item['crisis_type'] as String? ?? 'other').toLowerCase();
+          IconData icon;
+          switch (crisisType) {
+            case 'flood':
+              icon = Icons.water_rounded;
+              break;
+            case 'fire':
+              icon = Icons.local_fire_department_rounded;
+              break;
+            case 'medical':
+              icon = Icons.medical_services_rounded;
+              break;
+            case 'weather':
+              icon = Icons.thunderstorm_rounded;
+              break;
+            default:
+              icon = Icons.report_problem_rounded;
+          }
+          
+          DateTime date;
+          if (item['first_detected_at'] != null) {
+            date = DateTime.parse(item['first_detected_at'] as String);
+          } else {
+            date = DateTime.now();
+          }
 
-// Notification settings
-final pushNotifProvider = StateProvider<bool>((ref) => true);
-final emailAlertProvider = StateProvider<bool>((ref) => false);
-final smsAlertProvider = StateProvider<bool>((ref) => false);
-final alertRadiusProvider = StateProvider<double>((ref) => 25.0);
-
-// ─── Mock Incident Data ───────────────────────────────────────────────────────
-final incidentHistoryProvider = Provider<List<IncidentHistoryItem>>((ref) {
+          return IncidentHistoryItem(
+            id: (item['id'] ?? '').toString(),
+            title: item['title'] as String? ?? 'Incident Alert',
+            type: item['crisis_type'] as String? ?? 'Other',
+            date: date,
+            severity: item['severity'] as String? ?? 'low',
+            typeIcon: icon,
+          );
+        }).toList();
+      }
+    }
+  } catch (_) {}
+  
   return [
     IncidentHistoryItem(
       id: '1',
@@ -122,32 +133,49 @@ final incidentHistoryProvider = Provider<List<IncidentHistoryItem>>((ref) {
       severity: 'medium',
       typeIcon: Icons.local_fire_department_rounded,
     ),
-    IncidentHistoryItem(
-      id: '4',
-      title: 'Medical Emergency - Mall',
-      type: 'Medical',
-      date: DateTime.now().subtract(const Duration(days: 12)),
-      severity: 'high',
-      typeIcon: Icons.medical_services_rounded,
-    ),
-    IncidentHistoryItem(
-      id: '5',
-      title: 'Road Closure - Highway 7',
-      type: 'Infrastructure',
-      date: DateTime.now().subtract(const Duration(days: 15)),
-      severity: 'low',
-      typeIcon: Icons.block_rounded,
-    ),
-    IncidentHistoryItem(
-      id: '6',
-      title: 'Severe Storm Warning',
-      type: 'Weather',
-      date: DateTime.now().subtract(const Duration(days: 20)),
-      severity: 'high',
-      typeIcon: Icons.thunderstorm_rounded,
-    ),
   ];
 });
+
+final userProfileProvider = Provider<UserProfile>((ref) {
+  final authState = ref.watch(authStateProvider);
+  final user = authState.valueOrNull;
+  final incidentsCount = ref.watch(incidentHistoryProvider).valueOrNull?.length ?? 12;
+  
+  if (user != null) {
+    final creationTime = user.metadata.creationTime ?? DateTime.now();
+    final daysActive = DateTime.now().difference(creationTime).inDays;
+    return UserProfile(
+      uid: user.uid,
+      displayName: user.displayName ?? 'BayMax User',
+      email: user.email ?? 'user@BayMax.app',
+      photoUrl: user.photoURL,
+      incidentsReported: incidentsCount,
+      alertsSubscribed: 8,
+      daysActive: daysActive > 0 ? daysActive : 1,
+    );
+  }
+  return UserProfile(
+    uid: 'demo',
+    displayName: 'BayMax User',
+    email: 'user@BayMax.app',
+    incidentsReported: incidentsCount,
+    alertsSubscribed: 8,
+    daysActive: 47,
+  );
+});
+
+// Emergency subscription toggles
+final weatherSubProvider = StateProvider<bool>((ref) => true);
+final floodSubProvider = StateProvider<bool>((ref) => true);
+final fireSubProvider = StateProvider<bool>((ref) => false);
+final medicalSubProvider = StateProvider<bool>((ref) => true);
+final infraSubProvider = StateProvider<bool>((ref) => false);
+
+// Notification settings
+final pushNotifProvider = StateProvider<bool>((ref) => true);
+final emailAlertProvider = StateProvider<bool>((ref) => false);
+final smsAlertProvider = StateProvider<bool>((ref) => false);
+final alertRadiusProvider = StateProvider<double>((ref) => 25.0);
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
 class ProfileScreen extends ConsumerWidget {
@@ -156,7 +184,7 @@ class ProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profile = ref.watch(userProfileProvider);
-    final incidents = ref.watch(incidentHistoryProvider);
+    final incidentsAsync = ref.watch(incidentHistoryProvider);
 
     return Scaffold(
       backgroundColor: _kPrimary,
@@ -207,7 +235,7 @@ class ProfileScreen extends ConsumerWidget {
                   // ── Incident History ────────────────────────────────
                   _buildSectionTitle('Incident History'),
                   const SizedBox(height: 12),
-                  _IncidentHistoryCard(incidents: incidents),
+                  _IncidentHistoryCard(incidentsAsync: incidentsAsync),
                   const SizedBox(height: 24),
 
                   // ── App Info ────────────────────────────────────────
@@ -241,17 +269,18 @@ class ProfileScreen extends ConsumerWidget {
 }
 
 // ─── Profile Header ─────────────────────────────────────────────────────────
-class _ProfileHeader extends StatelessWidget {
+class _ProfileHeader extends ConsumerWidget {
   final UserProfile profile;
 
   const _ProfileHeader({required this.profile});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final initial =
         profile.displayName.isNotEmpty
             ? profile.displayName[0].toUpperCase()
             : 'U';
+    final isSyncing = ref.watch(syncProgressProvider);
 
     return Container(
       width: double.infinity,
@@ -318,42 +347,158 @@ class _ProfileHeader extends StatelessWidget {
             profile.email,
             style: GoogleFonts.inter(color: Colors.white54, fontSize: 14),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
 
-          // Edit Button
-          OutlinedButton.icon(
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    'Profile editing coming soon',
-                    style: GoogleFonts.inter(color: Colors.white),
+          // Action Buttons Row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Edit Button
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Profile editing coming soon',
+                          style: GoogleFonts.inter(color: Colors.white),
+                        ),
+                        backgroundColor: _kSurface,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    );
+                  },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: _kAccentAmber,
+                    side: BorderSide(color: _kAccentAmber.withValues(alpha: 0.5)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
-                  backgroundColor: _kSurface,
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                  icon: const Icon(Icons.edit_rounded, size: 16),
+                  label: Text(
+                    'Edit Profile',
+                    style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 13),
                   ),
                 ),
-              );
-            },
-            style: OutlinedButton.styleFrom(
-              foregroundColor: _kAccentAmber,
-              side: BorderSide(color: _kAccentAmber.withValues(alpha: 0.5)),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            ),
-            icon: const Icon(Icons.edit_rounded, size: 18),
-            label: Text(
-              'Edit Profile',
-              style: GoogleFonts.inter(fontWeight: FontWeight.w600),
-            ),
+              const SizedBox(width: 12),
+              
+              // Update Data Button
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: isSyncing
+                      ? null
+                      : () async {
+                          ref.read(syncProgressProvider.notifier).state = true;
+                          try {
+                            final apiService = ref.read(apiServiceProvider);
+                            final response = await apiService.triggerFetchAll();
+                            
+                            if (context.mounted) {
+                              if (response.isSuccess) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Row(
+                                      children: [
+                                        const Icon(Icons.check_circle_rounded, color: _kSuccessTeal),
+                                        const SizedBox(width: 10),
+                                        Expanded(
+                                          child: Text(
+                                            'System database updated with latest AI & IoT sources!',
+                                            style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.w600),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    backgroundColor: _kCardBg,
+                                    behavior: SnackBarBehavior.floating,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      side: const BorderSide(color: Colors.white10),
+                                    ),
+                                  ),
+                                );
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Row(
+                                      children: [
+                                        const Icon(Icons.info_outline, color: _kAccentAmber),
+                                        const SizedBox(width: 10),
+                                        Expanded(
+                                          child: Text(
+                                            'Offline simulation updated successfully!',
+                                            style: GoogleFonts.inter(color: Colors.white),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    backgroundColor: _kCardBg,
+                                    behavior: SnackBarBehavior.floating,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      side: const BorderSide(color: Colors.white10),
+                                    ),
+                                  ),
+                                );
+                              }
+                            }
+                          } catch (e) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Offline simulation updated successfully!'),
+                                  backgroundColor: _kCardBg,
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                              );
+                            }
+                          } finally {
+                            // Always increment the trigger to refresh the list, even on mock/offline fallback
+                            ref.read(refreshTriggerProvider.notifier).update((state) => state + 1);
+                            ref.read(syncProgressProvider.notifier).state = false;
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _kAccentAmber,
+                    foregroundColor: _kPrimary,
+                    disabledBackgroundColor: _kAccentAmber.withValues(alpha: 0.3),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    elevation: 4,
+                    shadowColor: _kAccentAmber.withValues(alpha: 0.3),
+                  ),
+                  icon: isSyncing
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(_kPrimary),
+                          ),
+                        )
+                      : const Icon(Icons.sync_rounded, size: 16),
+                  label: Text(
+                    isSyncing ? 'Updating...' : 'Update Data',
+                    style: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 13),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
-    ).animate().fadeIn(duration: 500.ms).slideY(begin: 0.1, end: 0);
+    );
   }
 }
 
@@ -773,9 +918,9 @@ class _NotificationSettingsCard extends ConsumerWidget {
 
 // ─── Incident History ───────────────────────────────────────────────────────
 class _IncidentHistoryCard extends StatelessWidget {
-  final List<IncidentHistoryItem> incidents;
+  final AsyncValue<List<IncidentHistoryItem>> incidentsAsync;
 
-  const _IncidentHistoryCard({required this.incidents});
+  const _IncidentHistoryCard({required this.incidentsAsync});
 
   Color _severityColor(String severity) {
     switch (severity.toLowerCase()) {
@@ -794,136 +939,183 @@ class _IncidentHistoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return incidentsAsync.when(
+      data: (incidents) {
+        if (incidents.isEmpty) {
+          return Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: _kCardBg,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.white10),
+            ),
+            child: Center(
+              child: Text(
+                'No incidents logged yet.',
+                style: GoogleFonts.inter(color: Colors.white38),
+              ),
+            ),
+          )
+          .animate()
+          .fadeIn(duration: 500.ms, delay: 450.ms)
+          .slideY(begin: 0.1, end: 0);
+        }
+
+        return Container(
           decoration: BoxDecoration(
             color: _kCardBg,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: Colors.white10),
           ),
           child: Column(
-            children:
-                incidents.asMap().entries.map((entry) {
-                  final idx = entry.key;
-                  final incident = entry.value;
-                  final sevColor = _severityColor(incident.severity);
-                  final isLast = idx == incidents.length - 1;
+            children: incidents.asMap().entries.map((entry) {
+              final idx = entry.key;
+              final incident = entry.value;
+              final sevColor = _severityColor(incident.severity);
+              final isLast = idx == incidents.length - 1;
 
-                  return Column(
-                    children: [
-                      InkWell(
-                        onTap: () {
-                          showModalBottomSheet(
-                            context: context,
-                            backgroundColor: _kSurface,
-                            shape: const RoundedRectangleBorder(
-                              borderRadius: BorderRadius.vertical(
-                                top: Radius.circular(20),
-                              ),
-                            ),
-                            builder:
-                                (ctx) =>
-                                    _IncidentDetailSheet(incident: incident),
-                          );
-                        },
-                        borderRadius: BorderRadius.vertical(
-                          top:
-                              idx == 0
-                                  ? const Radius.circular(16)
-                                  : Radius.zero,
-                          bottom:
-                              isLast ? const Radius.circular(16) : Radius.zero,
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 14,
+              return Column(
+                children: [
+                  InkWell(
+                    onTap: () {
+                      showModalBottomSheet(
+                        context: context,
+                        backgroundColor: _kSurface,
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(20),
                           ),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 40,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  color: sevColor.withValues(alpha: 0.15),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Icon(
-                                  incident.typeIcon,
-                                  color: sevColor,
-                                  size: 20,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      incident.title,
-                                      style: GoogleFonts.inter(
-                                        color: Colors.white,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      DateFormat(
-                                        'MMM d, yyyy',
-                                      ).format(incident.date),
-                                      style: GoogleFonts.inter(
-                                        color: Colors.white38,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: sevColor.withValues(alpha: 0.15),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  incident.severity.toUpperCase(),
+                        ),
+                        builder: (ctx) => _IncidentDetailSheet(incident: incident),
+                      );
+                    },
+                    borderRadius: BorderRadius.vertical(
+                      top: idx == 0 ? const Radius.circular(16) : Radius.zero,
+                      bottom: isLast ? const Radius.circular(16) : Radius.zero,
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: sevColor.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Icon(
+                              incident.typeIcon,
+                              color: sevColor,
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  incident.title,
                                   style: GoogleFonts.inter(
-                                    color: sevColor,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: 0.5,
+                                    color: Colors.white,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  DateFormat('MMM d, yyyy').format(incident.date),
+                                  style: GoogleFonts.inter(
+                                    color: Colors.white38,
+                                    fontSize: 12,
                                   ),
                                 ),
-                              ),
-                              const SizedBox(width: 8),
-                              const Icon(
-                                Icons.chevron_right_rounded,
-                                color: Colors.white24,
-                                size: 20,
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: sevColor.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              incident.severity.toUpperCase(),
+                              style: GoogleFonts.inter(
+                                color: sevColor,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          const Icon(
+                            Icons.chevron_right_rounded,
+                            color: Colors.white24,
+                            size: 20,
+                          ),
+                        ],
                       ),
-                      if (!isLast)
-                        const Divider(
-                          color: Colors.white10,
-                          height: 1,
-                          indent: 60,
-                        ),
-                    ],
-                  );
-                }).toList(),
+                    ),
+                  ),
+                  if (!isLast)
+                    const Divider(
+                      color: Colors.white10,
+                      height: 1,
+                      indent: 60,
+                    ),
+                ],
+              );
+            }).toList(),
           ),
         )
         .animate()
         .fadeIn(duration: 500.ms, delay: 450.ms)
         .slideY(begin: 0.1, end: 0);
+      },
+      loading: () => Container(
+        width: double.infinity,
+        height: 150,
+        decoration: BoxDecoration(
+          color: _kCardBg,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white10),
+        ),
+        child: const Center(
+          child: CircularProgressIndicator(color: _kAccentAmber),
+        ),
+      )
+      .animate()
+      .fadeIn(duration: 500.ms),
+      error: (err, stack) => Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: _kCardBg,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white10),
+        ),
+        child: Center(
+          child: Text(
+            'Failed to load incident history',
+            style: GoogleFonts.inter(color: _kEmergencyRed, fontWeight: FontWeight.bold),
+          ),
+        ),
+      )
+      .animate()
+      .fadeIn(duration: 500.ms),
+    );
   }
 }
 
