@@ -288,5 +288,3 @@ The client layers connect to the backend using 10 dedicated routers.
    ```
 
 ---
-
-*Developed by team Antigravity.*
